@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "kicad-footprint-to-openpnp-package"
+version = "0.1.0"
+description = "Transform a KiCad footprint into a OpenPnP package"
+authors = ["Maciej Małecki <me@mmalecki.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+cadquery = {git = "https://github.com/cadQuery/cadquery.git"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
