@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
+import sys
 from os import getenv, path
 
+import json
 import argparse
 import pcbnew
 import cadquery
 
 from xml.etree.ElementTree import Element, SubElement, tostring, indent
 
+from .utils import _template_path, _load_templating_vars
+
 OPENPNP_PACKAGE_VERSION = '1.1'
 UNITS = 'Millimeters'
 INDENT = '  '
 
-# TODO: attempt to resolve env vars based on .config/kicad/8.0/kicad_common'
 footprint_dir = getenv('KICAD8_FOOTPRINT_DIR', '/usr/share/kicad/footprints')
-model_dir = getenv('KICAD8_3DMODEL_DIR', '/usr/share/kicad/3dmodels')
+
+kicad_env_vars = _load_templating_vars()
+print(f"loaded environment variables: {kicad_env_vars}", file=sys.stderr)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -38,52 +43,55 @@ def main():
     print(tostring(package, encoding='unicode'))
 
 
-def Package(footprint: pcbnew.FOOTPRINT):
-    pkg = Element('package')
-    pkg.set('version', OPENPNP_PACKAGE_VERSION)
-    pkg.set('description', footprint.GetLibDescription())
-    pkg.set('id', footprint.GetFPIDAsString())
-    return pkg
-
 def to_milis(x):
     return x / 1000_000
 
 def footprint_models_to_dimensions(model: pcbnew.FP_3DMODEL):
-    filename = model.m_Filename.replace('${KICAD8_3DMODEL_DIR}', model_dir)
+    filename = _template_path(model.m_Filename, kicad_env_vars)
     if filename.endswith(".wrl"):
         # TODO: handle WRL natively, but for now, many stock 3D models ship with both:
         if path.isfile(filename.replace(".wrl", ".step")):
             filename = filename.replace(".wrl", ".step")
 
     if filename.endswith(".step"):
-        print(f"analyzing model {filename} for dimensions")
-        bb = cadquery.importers.importStep(filename).val().BoundingBox()
-        return {
-                "width": bb.xmax - bb.xmin,
-                "height": bb.ymax - bb.ymin
-        }
+        print(f"analyzing model {filename} for dimensions", file=sys.stderr)
+        try:
+            bb = cadquery.importers.importStep(filename).val().BoundingBox()
+            return {
+                    "width": bb.xmax - bb.xmin,
+                    "height": bb.ymax - bb.ymin
+            }
+        except Exception as e:
+            print(f"error while analyzing {filename}: {e}", file=sys.stderr)
+            return None
+
     else:
-        print("unable to analyze {filename}, only .step files are supported")
+        print(f"unable to analyze {filename}, only .step files are supported", file=sys.stderr)
         return None
 
 def footprint_to_package(footprint: pcbnew.FOOTPRINT):
     pads = footprint.Pads()
 
-    pkg = Package(footprint)
+    pkg = Element('package')
+    pkg.set('version', OPENPNP_PACKAGE_VERSION)
+    pkg.set('description', footprint.GetLibDescription())
+    pkg.set('id', footprint.GetFPID().GetUniStringLibItemName())
 
     fp = SubElement(pkg, 'footprint')
     fp.set('units', UNITS)
 
     models = footprint.Models()
     # TODO: footprint name-based heretics: https://klc.kicad.org/footprint/f2/f2.2.html
-    dimensions = footprint_models_to_dimensions(models[0]) if models[0] is not None else None
+    dimensions = footprint_models_to_dimensions(models[0]) if models.size() > 0 else None
 
-    # TODO: estimate based on component's 3D model
     if dimensions is not None:
         fp.set('body-width', str(dimensions["width"]))
         fp.set('body-height', str(dimensions["height"]))
 
     for pad in pads:
+        if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue
+
         p = SubElement(fp, 'pad', name=pad.GetName())
         p.set('width', str(to_milis(pad.GetSizeX())))
         p.set('height', str(to_milis(pad.GetSizeY())))
@@ -91,15 +99,13 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         p.set('y', str(to_milis(pad.GetY())))
 
         p.set('roundness', str(0))
-        p.set('rotation', str(pad.GetOrientationDegrees())) # TBD
+        p.set('rotation', str(0)) # TBD
 
         shape = pad.GetShape()
         if shape == pcbnew.PAD_SHAPE_ROUNDRECT:
             p.set('roundness', str(pad.GetRoundRectRadiusRatio()))
         elif shape == pcbnew.PAD_SHAPE_CIRCLE:
             p.set('roundness', str(100))
-
-        # TODO: ovals
 
     return pkg
 
