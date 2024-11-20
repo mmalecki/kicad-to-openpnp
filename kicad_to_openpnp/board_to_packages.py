@@ -8,7 +8,7 @@ import sexpdata
 
 from xml.etree.ElementTree import Element, tostring, indent
 
-from .kicad_footprint_to_openpnp_package import footprint_to_package
+from .footprint_to_package import footprint_to_package
 from .utils import _s_exp_find_row, _template_path, _load_templating_vars
 
 INDENT = '  '
