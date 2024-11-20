@@ -99,7 +99,7 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         p.set('y', str(to_milis(pad.GetY())))
 
         p.set('roundness', str(0))
-        p.set('rotation', str(0)) # TBD
+        p.set('rotation', str(pad.GetOrientationDegrees()))
 
         shape = pad.GetShape()
         if shape == pcbnew.PAD_SHAPE_ROUNDRECT:
