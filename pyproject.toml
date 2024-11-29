@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kicad-footprint-to-openpnp-package"
+name = "kicad-to-openpnp"
 version = "0.1.0"
 description = "Transform a KiCad footprint into a OpenPnP package"
 authors = ["Maciej Małecki <me@mmalecki.com>"]
@@ -8,7 +8,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-cadquery = {git = "https://github.com/cadQuery/cadquery.git"}
+sexpdata = "^1.0.2"
+
+cadquery = {git = "https://github.com/cadQuery/cadquery.git" }
+# For some reason we have to install all of CadQuery's dependencies ourselves.
+cadquery-ocp = "^7.7.2"
+multimethod = "^1.12"
+ezdxf = "^1.3.4"
+typish = "^1.9.3"
+nlopt = "^2.9.0"
+casadi = "^3.6.7"
 
 [build-system]
 requires = ["poetry-core"]

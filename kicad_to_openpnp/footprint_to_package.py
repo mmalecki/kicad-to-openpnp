@@ -2,18 +2,15 @@
 import sys
 from os import getenv, path
 
-import json
 import argparse
 import pcbnew
-import cadquery
 
 from xml.etree.ElementTree import Element, SubElement, tostring, indent
 
-from .utils import _template_path, _load_templating_vars
+from .utils import _template_path, _load_templating_vars, model_to_dimensions
+from .const import INDENT, UNITS
 
 OPENPNP_PACKAGE_VERSION = '1.1'
-UNITS = 'Millimeters'
-INDENT = '  '
 
 footprint_dir = getenv('KICAD8_FOOTPRINT_DIR', '/usr/share/kicad/footprints')
 
@@ -46,21 +43,18 @@ def main():
 def to_milis(x):
     return x / 1000_000
 
-def footprint_models_to_dimensions(model: pcbnew.FP_3DMODEL):
+def footprint_model_to_dimensions(model: pcbnew.FP_3DMODEL):
     filename = _template_path(model.m_Filename, kicad_env_vars)
     if filename.endswith(".wrl"):
         # TODO: handle WRL natively, but for now, many stock 3D models ship with both:
-        if path.isfile(filename.replace(".wrl", ".step")):
-            filename = filename.replace(".wrl", ".step")
+        step = filename.replace(".wrl", ".step")
+        if path.isfile(step):
+            filename = step
 
     if filename.endswith(".step"):
         print(f"analyzing model {filename} for dimensions", file=sys.stderr)
         try:
-            bb = cadquery.importers.importStep(filename).val().BoundingBox()
-            return {
-                    "width": bb.xmax - bb.xmin,
-                    "height": bb.ymax - bb.ymin
-            }
+            return model_to_dimensions(filename)
         except Exception as e:
             print(f"error while analyzing {filename}: {e}", file=sys.stderr)
             return None
@@ -82,11 +76,11 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
 
     models = footprint.Models()
     # TODO: footprint name-based heretics: https://klc.kicad.org/footprint/f2/f2.2.html
-    dimensions = footprint_models_to_dimensions(models[0]) if models.size() > 0 else None
+    dimensions = footprint_model_to_dimensions(models[0]) if models.size() > 0 else None
 
     if dimensions is not None:
         fp.set('body-width', str(dimensions["width"]))
-        fp.set('body-height', str(dimensions["height"]))
+        fp.set('body-height', str(dimensions["length"]))
 
     for pad in pads:
         if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:

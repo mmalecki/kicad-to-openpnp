@@ -9,10 +9,9 @@ import sexpdata
 from xml.etree.ElementTree import Element, tostring, indent
 
 from .footprint_to_package import footprint_to_package
-from .utils import _s_exp_find_row, _template_path, _load_templating_vars
+from .utils import _load_library_paths, _load_templating_vars
 
 INDENT = '  '
-LIB = sexpdata.Symbol('lib')
 URI = sexpdata.Symbol('uri')
 NAME = sexpdata.Symbol('name')
 
@@ -20,10 +19,7 @@ kicad_env_vars = _load_templating_vars()
 library_paths = {}
 
 try:
-    with open(f"{getenv("HOME")}/.config/kicad/8.0/fp-lib-table") as f:
-        table = sexpdata.loads(f.read())
-        libs = [item for item in table if item[0] == LIB]
-        library_paths = { _s_exp_find_row(NAME, item)[1]: _template_path(_s_exp_find_row(URI, item)[1], kicad_env_vars) for item in libs }
+    library_paths = _load_library_paths(kicad_env_vars)
 except:
     pass
 
