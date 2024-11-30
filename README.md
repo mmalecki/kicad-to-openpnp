@@ -18,6 +18,13 @@ pipx install --system-site-packages kicad-to-openpnp
 
 (`--system-site-packages` is required due to how KiCad distributes its Python bindings.)
 
+Alternatively, if the above doesn't work for you (PyPi doesn't allow GitHub dependencies,
+so CadQuery version there is quite outdated), you can try installing directly from GitHub:
+
+```sh
+pipx install --system-site-packages git+https://github.com/mmalecki/kicad-to-openpnp.git
+```
+
 ## Usage
 
 Assuming your board file is called `board.kicad_pcb`, and you're in your `.openpnp2` directory,
