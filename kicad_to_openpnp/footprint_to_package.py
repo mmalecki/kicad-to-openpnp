@@ -3,14 +3,21 @@ import sys
 from os import path
 
 import argparse
-import pcbnew
 
 from xml.etree.ElementTree import Element, SubElement, tostring, indent
 
 from .kicad_utils import template_path, model_to_dimensions, load_library_footprint, templating_vars
+from .cli_utils import get_logger, pcbnew_error
 from .const import INDENT, UNITS
 
 OPENPNP_PACKAGE_VERSION = '1.1'
+
+logger = get_logger('footprint-to-package')
+
+try:
+    import pcbnew
+except:
+    pcbnew_error(logger)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -42,15 +49,14 @@ def footprint_model_to_dimensions(model: pcbnew.FP_3DMODEL):
             filename = step
 
     if filename.endswith(".step"):
-        print(f"analyzing model {filename} for dimensions", file=sys.stderr)
+        logger.info(f"analyzing model {filename} for dimensions")
         try:
             return model_to_dimensions(filename, rotation=model.m_Rotation)
         except Exception as e:
-            print(f"error while analyzing {filename}: {e}", file=sys.stderr)
+            logger.error(f"error while analyzing {filename}: {e}")
             return None
-
     else:
-        print(f"unable to analyze {filename}, only .step files are supported", file=sys.stderr)
+        logger.warning(f"unable to analyze {filename}, only .step files are supported")
         return None
 
 def footprint_to_package(footprint: pcbnew.FOOTPRINT):
@@ -73,7 +79,7 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         fp.set('body-width', str(dimensions["width"]))
         fp.set('body-height', str(dimensions["length"]))
     else:
-        print(f"no dimensions found for {id}", file=sys.stderr)
+        logger.warning(f"no dimensions found for {id}")
 
     for pad in pads:
         if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:

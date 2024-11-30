@@ -63,6 +63,7 @@ def main():
     indent(parts, space=INDENT)
 
     out = tostring(parts, encoding='unicode')
+    # Try to get as close to OpenPnP formatting as possible.
     if not args.pretty:
         out = re.sub(r' />$', '/>', out, flags=re.MULTILINE)
     print(out)

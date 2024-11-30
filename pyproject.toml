@@ -18,7 +18,13 @@ ezdxf = "^1.3.4"
 typish = "^1.9.3"
 nlopt = "^2.9.0"
 casadi = "^3.6.7"
+colorlog = "^6.9.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+kicad-board-to-openpnp-packages = "kicad_to_openpnp.board_to_packages:main"
+kicad-board-to-openpnp-parts = "kicad_to_openpnp.board_to_parts:main"
+kicad-footprint-to-openpnp-package = "kicad_to_openpnp.footprint_to_package:main"

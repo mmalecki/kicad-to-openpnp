@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 import re
 import argparse
-import pcbnew
 
 from xml.etree.ElementTree import Element, fromstring, tostring, indent
 
 from .footprint_to_package import footprint_to_package
 from .kicad_utils import load_library_footprint
 from .xml_utils import extend_by_id
+from .cli_utils import get_logger, pcbnew_error
 from .const import INDENT
+
+logger = get_logger('board-to-packages')
+
+try:
+    import pcbnew
+except:
+    pcbnew_error(logger)
+
 
 def board_to_packages(board):
     footprints = board.GetFootprints()
