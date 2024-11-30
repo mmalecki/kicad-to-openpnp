@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kicad-to-openpnp"
-version = "0.1.2"
+version = "0.1.3"
 description = "Transform a KiCad footprint into a OpenPnP package"
 authors = ["Maciej Małecki <me@mmalecki.com>"]
 license = "MIT"
