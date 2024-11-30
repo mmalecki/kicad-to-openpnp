@@ -48,7 +48,9 @@ def main():
             packages = extend_by_id(fromstring(join.read()), packages)
 
     indent(packages, space=INDENT)
+
     out = tostring(packages, encoding='unicode')
+    # Try to get as close to OpenPnP formatting as possible.
     if not args.pretty:
         out = re.sub(r' />$', '/>', out, flags=re.MULTILINE)
     print(out)
