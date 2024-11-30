@@ -49,14 +49,14 @@ def footprint_model_to_dimensions(model: pcbnew.FP_3DMODEL):
             filename = step
 
     if filename.endswith(".step"):
-        logger.info(f"analyzing model {filename} for dimensions")
+        logger.info(f"Analyzing model {filename} for dimensions")
         try:
             return model_to_dimensions(filename, rotation=model.m_Rotation)
         except Exception as e:
             logger.error(f"error while analyzing {filename}: {e}")
             return None
     else:
-        logger.warning(f"unable to analyze {filename}, only .step files are supported")
+        logger.warning(f"Unable to analyze {filename}, only .step files are supported")
         return None
 
 def footprint_to_package(footprint: pcbnew.FOOTPRINT):
@@ -79,7 +79,7 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         fp.set('body-width', str(dimensions["width"]))
         fp.set('body-height', str(dimensions["length"]))
     else:
-        logger.warning(f"no dimensions found for {id}")
+        logger.warning(f"No dimensions found for {id}")
 
     for pad in pads:
         if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:

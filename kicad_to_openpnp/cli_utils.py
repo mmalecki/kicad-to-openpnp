@@ -1,8 +1,9 @@
 import sys
 import logging, colorlog
 
-logging.addLevelName(logging.ERROR, 'error')
 logging.addLevelName(logging.INFO, 'info')
+logging.addLevelName(logging.WARNING, 'warning')
+logging.addLevelName(logging.ERROR, 'error')
 
 def get_logger(name):
     formatter = colorlog.ColoredFormatter(

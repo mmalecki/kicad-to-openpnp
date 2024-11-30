@@ -32,10 +32,17 @@ def board_to_packages(board):
         # since that gets us positions relative to the board.
         # Read in the library one.
         if id not in packages and not footprint.IsDNP() and not footprint.IsExcludedFromPosFiles():
-            packages[id] = footprint_to_package(load_library_footprint(lib, name))
+            try:
+                library_footprint = load_library_footprint(lib, name)
+            except:
+                logger.error(f'Unable to find library footprint for {lib}:{name}')
+                packages[id] = None
+                continue
+
+            packages[id] = footprint_to_package(library_footprint)
     
     p = Element('openpnp-packages')
-    p.extend(packages.values())
+    p.extend(filter(lambda p: p is not None, packages.values()))
     return p
 
 
