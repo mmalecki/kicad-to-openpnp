@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.12"
 sexpdata = "^1.0.2"
 
-cadquery = {git = "https://github.com/cadQuery/cadquery.git" }
+cadquery = "^2.4.0"
 # For some reason we have to install all of CadQuery's dependencies ourselves.
 cadquery-ocp = "^7.7.2"
 multimethod = "^1.12"
@@ -28,3 +28,6 @@ build-backend = "poetry.core.masonry.api"
 kicad-board-to-openpnp-packages = "kicad_to_openpnp.board_to_packages:main"
 kicad-board-to-openpnp-parts = "kicad_to_openpnp.board_to_parts:main"
 kicad-footprint-to-openpnp-package = "kicad_to_openpnp.footprint_to_package:main"
+
+[project.urls]
+Repository = "https://github.com/mmalecki/kicad-to-openpnp"
