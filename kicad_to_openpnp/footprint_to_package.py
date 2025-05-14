@@ -48,7 +48,7 @@ def footprint_model_to_dimensions(model: pcbnew.FP_3DMODEL):
         if path.isfile(step):
             filename = step
 
-    if filename.endswith(".step"):
+    if filename.endswith(".step") or filename.endswith(".stp"):
         logger.info(f"Analyzing model {filename} for dimensions")
         try:
             return model_to_dimensions(filename, rotation=model.m_Rotation)
