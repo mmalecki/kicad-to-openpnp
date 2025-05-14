@@ -5,17 +5,24 @@ import sexpdata
 import cadquery
 import pcbnew
 
+_pcbnew_version = getenv('KICAD_VERSION', pcbnew.Version()).split('.')
+_pcbnew_major = _pcbnew_version[0]
+_pcbnew_minor = _pcbnew_version[1]
+
+_ver_prefix = f'KICAD{_pcbnew_major}_'
+_fp_dir = f'{_ver_prefix}FOOTPRINT_DIR'
+
 def load_templating_vars():
     # Try to default the necessary ones
-    model_dir = getenv('KICAD8_3DMODEL_DIR', '/usr/share/kicad/3dmodels')
-    footprint_dir = getenv('KICAD8_FOOTPRINT_DIR', '/usr/share/kicad/footprints')
+    model_dir = getenv(f'{_ver_prefix}3DMODEL_DIR', '/usr/share/kicad/3dmodels')
+    footprint_dir = getenv(_fp_dir, '/usr/share/kicad/footprints')
 
     kicad_env_vars = {
-        'KICAD8_3DMODEL_DIR': model_dir,
-        'KICAD8_FOOTPRINT_DIR': footprint_dir
+        f'{_ver_prefix}3DMODEL_DIR': model_dir,
+        _fp_dir: footprint_dir
     }
     try:
-        with open(f"{getenv("HOME")}/.config/kicad/8.0/kicad_common.json") as f:
+        with open(f"{getenv("HOME")}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/kicad_common.json") as f:
             kicad_env_vars.update(json.loads(f.read())["environment"]["vars"])
     finally:
         return kicad_env_vars
@@ -34,7 +41,7 @@ URI = sexpdata.Symbol('uri')
 NAME = sexpdata.Symbol('name')
 LIB = sexpdata.Symbol('lib')
 def load_library_paths(kicad_env_vars: Dict[str, str]):
-    with open(f"{getenv("HOME")}/.config/kicad/8.0/fp-lib-table") as f:
+    with open(f"{getenv("HOME")}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/fp-lib-table") as f:
         table = sexpdata.loads(f.read())
         libs = [item for item in table if item[0] == LIB]
         return { _s_exp_find_row(NAME, item)[1]: template_path(_s_exp_find_row(URI, item)[1], kicad_env_vars) for item in libs }
@@ -63,4 +70,4 @@ def load_library_footprint(lib: str, name: str):
     if lib in library_paths:
         return pcbnew.FootprintLoad(library_paths[lib], name)
     else: # Fall back to stock footprint directory
-        return pcbnew.FootprintLoad(path.join(templating_vars['KICAD8_FOOTPRINT_DIR'], f'{lib}.pretty'), name)
+        return pcbnew.FootprintLoad(path.join(templating_vars[_fp_dir], f'{lib}.pretty'), name)
