@@ -90,6 +90,7 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         p.set('height', str(to_milis(pad.GetSizeY())))
         p.set('x', str(to_milis(pad.GetX())))
         p.set('y', str(to_milis(-pad.GetY())))
+        p.set('mark', 'true' if pad.GetNumber() == '1' else 'false')
 
         p.set('roundness', str(0))
         p.set('rotation', str(pad.GetOrientationDegrees()))
