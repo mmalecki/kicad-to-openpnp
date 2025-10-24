@@ -1,11 +1,12 @@
 # kicad-to-openpnp
-**Note: this is heavily WIP, and may introduce ghosts into your machine.**
 
 `kicad-to-openpnp` helps you convert your KiCad project into a set of full-fledged
 OpenPnP packages and parts, including pin definitions, as well as dimensions
 taken from 3D models of the footprints.
 
 It does *not* replace OpenPnP's KiCad position file import process, it enhances it.
+
+While this project is still WIP, it's been used in several successful assemblies so far.
 
 ## Installation
 
