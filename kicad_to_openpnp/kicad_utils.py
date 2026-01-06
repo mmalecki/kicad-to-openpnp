@@ -2,8 +2,12 @@ from os import getenv, path
 from typing import Dict
 import json
 import sexpdata
-import cadquery
 import pcbnew
+
+from OCP.STEPControl import STEPControl_Reader
+from OCP.IFSelect import IFSelect_RetDone
+from OCP.Bnd import Bnd_Box
+from OCP.BRepBndLib import BRepBndLib
 
 _pcbnew_version = getenv('KICAD_VERSION', pcbnew.Version()).split('.')
 _pcbnew_major = _pcbnew_version[0]
@@ -56,16 +60,24 @@ except:
     pass
 
 def model_to_dimensions(filename: str, rotation=(0, 0, 0)):
-    bb = (cadquery.importers.importStep(filename).val()
-        .rotate((0, 0, 0), (1, 0, 0), rotation[0])
-        .rotate((0, 0, 0), (0, 1, 0), rotation[1])
-        .rotate((0, 0, 0), (0, 0, 1), rotation[2])
-        .BoundingBox()
-    )
+    reader = STEPControl_Reader()
+    status = reader.ReadFile(filename)
+    if status != IFSelect_RetDone:
+        raise RuntimeError("Failed to read STEP file")
+    reader.TransferRoots()
+    shape = reader.OneShape()
+
+    bbox = Bnd_Box()
+    bbox.SetGap(0.0)
+
+    lib = BRepBndLib()
+    lib.AddOptimal_s(shape, bbox)
+
+    xmin, ymin, zmin, xmax, ymax, zmax = bbox.Get()
     return {
-        "width": bb.xmax - bb.xmin,
-        "length": bb.ymax - bb.ymin,
-        "height" : bb.zmax - bb.zmin
+        "width": xmax - xmin,
+        "length": ymax - ymin,
+        "height" : zmax - zmin
     }
 
 def load_library_footprint(lib: str, name: str):
