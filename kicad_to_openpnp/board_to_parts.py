@@ -4,7 +4,7 @@ import pcbnew
 from xml.etree.ElementTree import fromstring, Element, tostring, indent
 
 from .footprint_to_package import footprint_model_to_dimensions
-from .const import UNITS, INDENT
+from .const import UNITS, INDENT, PRETTY_INDENT
 from .xml_utils import extend_by_id
 
 def footprint_to_part(footprint: pcbnew.FOOTPRINT):
@@ -60,7 +60,7 @@ def main():
         with open(args.join) as join:
             parts = extend_by_id(fromstring(join.read()), parts)
 
-    indent(parts, space=INDENT)
+    indent(parts, space=PRETTY_INDENT if args.pretty else INDENT)
 
     out = tostring(parts, encoding='unicode')
     # Try to get as close to OpenPnP formatting as possible.

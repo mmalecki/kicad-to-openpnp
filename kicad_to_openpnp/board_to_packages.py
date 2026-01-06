@@ -8,7 +8,7 @@ from .footprint_to_package import footprint_to_package
 from .kicad_utils import load_library_footprint
 from .xml_utils import extend_by_id
 from .cli_utils import get_logger, pcbnew_error
-from .const import INDENT
+from .const import INDENT, PRETTY_INDENT
 
 logger = get_logger('board-to-packages')
 
@@ -62,7 +62,7 @@ def main():
         with open(args.join) as join:
             packages = extend_by_id(fromstring(join.read()), packages)
 
-    indent(packages, space=INDENT)
+    indent(packages, space=PRETTY_INDENT if args.pretty else INDENT)
 
     out = tostring(packages, encoding='unicode')
     # Try to get as close to OpenPnP formatting as possible.

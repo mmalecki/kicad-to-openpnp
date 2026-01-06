@@ -8,7 +8,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, indent
 
 from .kicad_utils import template_path, model_to_dimensions, load_library_footprint, templating_vars
 from .cli_utils import get_logger, pcbnew_error
-from .const import INDENT, UNITS
+from .const import UNITS, INDENT, PRETTY_INDENT
 
 OPENPNP_PACKAGE_VERSION = '1.1'
 
@@ -32,8 +32,7 @@ def main():
     # TODO: -f <library>:<footprint>
     package = footprint_to_package(load_library_footprint(args.library, args.footprint))
 
-    if args.pretty:
-        indent(package, space=INDENT)
+    indent(package, space=PRETTY_INDENT if args.pretty else INDENT)
     print(tostring(package, encoding='unicode'))
 
 

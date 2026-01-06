@@ -1,2 +1,3 @@
 UNITS = 'Millimeters'
-INDENT = '  ' # It's the OpenPnP one, I didn't pick it.
+INDENT = '   ' # It's the OpenPnP one, I didn't pick it.
+PRETTY_INDENT = '  '
