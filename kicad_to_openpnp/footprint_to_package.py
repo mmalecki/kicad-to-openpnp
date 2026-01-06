@@ -41,22 +41,24 @@ def to_milis(x):
     return x / 1000_000
 
 def footprint_model_to_dimensions(model: pcbnew.FP_3DMODEL):
-    filename = template_path(model.m_Filename, templating_vars)
-    if filename.endswith(".wrl"):
-        # TODO: handle WRL natively, but for now, many stock 3D models ship with both:
-        step = filename.replace(".wrl", ".step")
+    filepath = template_path(model.m_Filename, templating_vars)
+    name, ext = path.splitext(filepath)
+    if ext.lower() == '.wrl':
+        # TODO: handle WRL natively, but for now, many stock 3D models ship with both, so attempt
+        # this shot in the dark:
+        step = name + '.step'
         if path.isfile(step):
-            filename = step
+            filepath = step
 
-    if filename.endswith(".step") or filename.endswith(".stp"):
-        logger.info(f"Analyzing model {filename} for dimensions")
+    if ext.lower() in ('.step', '.stp'):
+        logger.info(f"Analyzing model {filepath} for dimensions")
         try:
-            return model_to_dimensions(filename, rotation=model.m_Rotation)
+            return model_to_dimensions(filepath, rotation=model.m_Rotation)
         except Exception as e:
-            logger.error(f"error while analyzing {filename}: {e}")
+            logger.error(f"error while analyzing {filepath}: {e}")
             return None
     else:
-        logger.warning(f"Unable to analyze {filename}, only .step files are supported")
+        logger.warning(f"Unable to analyze {filepath}, only .step files are supported")
         return None
 
 def footprint_to_package(footprint: pcbnew.FOOTPRINT):
