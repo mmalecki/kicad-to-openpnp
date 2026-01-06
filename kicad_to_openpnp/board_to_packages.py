@@ -5,7 +5,7 @@ import argparse
 from xml.etree.ElementTree import Element, fromstring, tostring, indent
 
 from .footprint_to_package import footprint_to_package
-from .kicad_utils import load_library_footprint
+from .kicad_utils import load_library_footprint, include_footprint
 from .xml_utils import extend_by_id
 from .cli_utils import get_logger, pcbnew_error
 from .const import INDENT, PRETTY_INDENT
@@ -31,7 +31,7 @@ def board_to_packages(board):
         # We cannot reuse the footprint we just read in from the board,
         # since that gets us positions relative to the board.
         # Read in the library one.
-        if id not in packages and not footprint.IsDNP() and not footprint.IsExcludedFromPosFiles():
+        if id not in packages and include_footprint(footprint):
             try:
                 library_footprint = load_library_footprint(lib, name)
             except:

@@ -6,6 +6,7 @@ from xml.etree.ElementTree import fromstring, Element, tostring, indent
 from .footprint_to_package import footprint_model_to_dimensions
 from .const import UNITS, INDENT, PRETTY_INDENT
 from .xml_utils import extend_by_id
+from .kicad_utils import include_footprint
 
 def footprint_to_part(footprint: pcbnew.FOOTPRINT):
     part = Element('part')
@@ -36,7 +37,7 @@ def board_to_parts(board):
         # There's no harm in using the body height from the 3D model on the board (as
         # opposed to the library). Even if it's changed from the default one, offset,
         # or resized, that's an explicit action by the user.
-        if id not in parts and not footprint.IsDNP() and not footprint.IsExcludedFromPosFiles():
+        if id not in parts and include_footprint(footprint):
             parts[id] = footprint_to_part(footprint)
             parts[id].set('id', id)
     

@@ -85,3 +85,6 @@ def load_library_footprint(lib: str, name: str):
         return pcbnew.FootprintLoad(library_paths[lib], name)
     else: # Fall back to stock footprint directory
         return pcbnew.FootprintLoad(path.join(templating_vars[_fp_dir], f'{lib}.pretty'), name)
+
+def include_footprint(fp: pcbnew.FOOTPRINT):
+    return not fp.IsDNP() and not fp.IsExcludedFromPosFiles() and fp.GetTypeName() == 'SMD'
