@@ -12,10 +12,12 @@ _pcbnew_minor = _pcbnew_version[1]
 _ver_prefix = f'KICAD{_pcbnew_major}_'
 _fp_dir = f'{_ver_prefix}FOOTPRINT_DIR'
 
+_kicad_prefix = getenv('KICAD_PREFIX', '/usr')
+
 def load_templating_vars():
     # Try to default the necessary ones
-    model_dir = getenv(f'{_ver_prefix}3DMODEL_DIR', '/usr/share/kicad/3dmodels')
-    footprint_dir = getenv(_fp_dir, '/usr/share/kicad/footprints')
+    model_dir = getenv(f'{_ver_prefix}3DMODEL_DIR', f'{_kicad_prefix}/share/kicad/3dmodels')
+    footprint_dir = getenv(_fp_dir, f'{_kicad_prefix}/share/kicad/footprints')
 
     kicad_env_vars = {
         f'{_ver_prefix}3DMODEL_DIR': model_dir,
