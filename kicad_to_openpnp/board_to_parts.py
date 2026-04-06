@@ -21,6 +21,8 @@ def footprint_to_part(footprint: pcbnew.FOOTPRINT):
 
     if dimensions is not None:
         part.set('height', str(dimensions["height"]))
+    else:
+        part.set('height', '0.0')
 
     return part
 
