@@ -52,6 +52,15 @@ def load_library_paths(kicad_env_vars: Dict[str, str]):
         libs = [item for item in table if item[0] == LIB]
         return { _s_exp_find_row(NAME, item)[1]: template_path(_s_exp_find_row(URI, item)[1], kicad_env_vars) for item in libs }
 
+def load_project_library_paths(board_path: str, kicad_env_vars: Dict[str, str]):
+    project_dir = path.dirname(path.abspath(board_path))
+    fp_lib_table = path.join(project_dir, 'fp-lib-table')
+    vars_with_proj = {**kicad_env_vars, 'KIPRJMOD': project_dir}
+    with open(fp_lib_table) as f:
+        table = sexpdata.loads(f.read())
+        libs = [item for item in table if item[0] == LIB]
+        return { _s_exp_find_row(NAME, item)[1]: template_path(_s_exp_find_row(URI, item)[1], vars_with_proj) for item in libs }
+
 library_paths = {}
 
 try:
