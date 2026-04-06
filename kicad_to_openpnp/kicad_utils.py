@@ -28,7 +28,7 @@ def load_templating_vars():
         _fp_dir: footprint_dir
     }
     try:
-        with open(f"{getenv("HOME")}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/kicad_common.json") as f:
+        with open(f"{getenv('HOME')}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/kicad_common.json") as f:
             kicad_env_vars.update(json.loads(f.read())["environment"]["vars"])
     finally:
         return kicad_env_vars
@@ -47,7 +47,7 @@ URI = sexpdata.Symbol('uri')
 NAME = sexpdata.Symbol('name')
 LIB = sexpdata.Symbol('lib')
 def load_library_paths(kicad_env_vars: Dict[str, str]):
-    with open(f"{getenv("HOME")}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/fp-lib-table") as f:
+    with open(f"{getenv('HOME')}/.config/kicad/{_pcbnew_major}.{_pcbnew_minor}/fp-lib-table") as f:
         table = sexpdata.loads(f.read())
         libs = [item for item in table if item[0] == LIB]
         return { _s_exp_find_row(NAME, item)[1]: template_path(_s_exp_find_row(URI, item)[1], kicad_env_vars) for item in libs }
