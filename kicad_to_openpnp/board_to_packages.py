@@ -5,7 +5,7 @@ import argparse
 from xml.etree.ElementTree import Element, fromstring, tostring, indent
 
 from .footprint_to_package import footprint_to_package
-from .kicad_utils import load_library_footprint, include_footprint
+from .kicad_utils import load_library_footprint, include_footprint, load_project_library_paths, library_paths, templating_vars
 from .xml_utils import extend_by_id
 from .cli_utils import get_logger, pcbnew_error
 from .const import INDENT, PRETTY_INDENT
@@ -56,6 +56,12 @@ def main():
     args = parser.parse_args()
 
     board = pcbnew.LoadBoard(args.board)
+
+    try:
+        library_paths.update(load_project_library_paths(args.board, templating_vars))
+    except:
+        pass
+
     packages = board_to_packages(board)
 
     if args.join is not None:
