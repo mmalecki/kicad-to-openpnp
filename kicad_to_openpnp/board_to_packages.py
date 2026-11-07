@@ -19,8 +19,9 @@ except:
     pcbnew_error(logger)
 
 
-def board_to_packages(board, project_dir=None, id_map=None):
+def board_to_packages(board, project_dir=None, id_map=None, skip=None):
     id_map = id_map or {}
+    skip = skip or []
     footprints = board.GetFootprints()
     packages = {}
     for footprint in footprints:
@@ -29,6 +30,9 @@ def board_to_packages(board, project_dir=None, id_map=None):
         fpid = footprint.GetFPID()
         lib = fpid.GetFullLibraryName()
         name = fpid.GetUniStringLibItemName()
+
+        if any(t in lib or t in name for t in skip):
+            continue
 
         # Prefer the library copy of the footprint (clean local coordinates
         # plus description), but fall back to the board-embedded copy when the
@@ -59,12 +63,16 @@ def main():
     parser.add_argument('--join', '-j', help='Join with given packages file. Existing packages are given precedence.', type=str, default=None)
     parser.add_argument('--id-map', type=str, default=None,
                         help='Rename footprint-derived package ids, e.g. C_0603=C0603,LED_0805=LED0805')
+    parser.add_argument('--skip', type=str, default=None,
+                        help='Comma-separated substrings; footprints whose library or name matches are excluded')
     parser.add_argument('--pretty', '-p', help='Pretty print the output? Default is to output with OpenPnP formatting settings', action='store_true')
 
     args = parser.parse_args()
 
     board = pcbnew.LoadBoard(args.board)
-    packages = board_to_packages(board, project_dir=path.dirname(path.abspath(args.board)), id_map=parse_id_map(args.id_map))
+    packages = board_to_packages(board, project_dir=path.dirname(path.abspath(args.board)),
+                                 id_map=parse_id_map(args.id_map),
+                                 skip=(args.skip.split(',') if args.skip else None))
 
     if args.join is not None:
         with open(args.join) as join:

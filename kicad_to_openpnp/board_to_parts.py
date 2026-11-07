@@ -32,8 +32,9 @@ def footprint_to_part(footprint: pcbnew.FOOTPRINT, id: str, package_id: str):
     return part
 
 
-def board_to_parts(board, id_map=None):
+def board_to_parts(board, id_map=None, skip=None):
     id_map = id_map or {}
+    skip = skip or []
     footprints = board.GetFootprints()
     parts = {}
     for footprint in footprints:
@@ -43,6 +44,9 @@ def board_to_parts(board, id_map=None):
         fpid = footprint.GetFPID() 
         footprint_name = fpid.GetUniStringLibItemName()
         value = footprint.GetValueAsString()
+
+        if any(t in fpid.GetFullLibraryName() or t in footprint_name or t == value for t in skip):
+            continue
 
         package_id = id_map.get(footprint_name, footprint_name)
         if value in ('', footprint_name):
@@ -73,11 +77,14 @@ def main():
     parser.add_argument('--join', '-j', help='Join with given parts file. Existing parts are given precedence.', type=str, default=None)
     parser.add_argument('--id-map', type=str, default=None,
                         help='Rename footprint-derived part/package ids, e.g. C_0603=C0603,LED_0805=LED0805')
+    parser.add_argument('--skip', type=str, default=None,
+                        help='Comma-separated substrings; footprints whose library, name or value matches are excluded')
 
     args = parser.parse_args()
 
     board = pcbnew.LoadBoard(args.board)
-    parts = board_to_parts(board, id_map=parse_id_map(args.id_map))
+    parts = board_to_parts(board, id_map=parse_id_map(args.id_map),
+                           skip=(args.skip.split(',') if args.skip else None))
 
     if args.join is not None:
         with open(args.join) as join:
