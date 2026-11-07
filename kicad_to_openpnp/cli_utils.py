@@ -27,3 +27,11 @@ def pcbnew_error(logger):
     logger.error('Failed to import pcbnew. Make sure you installed `kicad-to-openpnp` with access to system site packages:')
     logger.error('  pipx install --system-site-packages kicad-to-openpnp')
     sys.exit(1)
+
+def parse_id_map(spec):
+    id_map = {}
+    if spec:
+        for pair in spec.split(','):
+            old, new = pair.split('=')
+            id_map[old.strip()] = new.strip()
+    return id_map
