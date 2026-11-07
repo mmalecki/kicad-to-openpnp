@@ -7,7 +7,9 @@ from .footprint_to_package import footprint_model_to_dimensions
 from .const import UNITS, INDENT, PRETTY_INDENT
 from .xml_utils import extend_by_id
 from .kicad_utils import include_footprint
-from .cli_utils import parse_id_map
+from .cli_utils import get_logger, parse_id_map
+
+logger = get_logger('board-to-parts')
 
 
 def footprint_to_part(footprint: pcbnew.FOOTPRINT, id: str, package_id: str):
@@ -35,22 +37,28 @@ def board_to_parts(board, id_map=None):
     footprints = board.GetFootprints()
     parts = {}
     for footprint in footprints:
+        if not include_footprint(footprint):
+            continue
+
         fpid = footprint.GetFPID() 
         footprint_name = fpid.GetUniStringLibItemName()
         value = footprint.GetValueAsString()
 
         package_id = id_map.get(footprint_name, footprint_name)
         if value in ('', footprint_name):
-            # The value field just repeats the footprint name (KiCad default
-            # for generic symbols) — don't duplicate it in the part id.
-            id = package_id
-        else:
-            id = f'{package_id}-{value}'
+            # The value field is empty or just repeats the footprint name
+            # (KiCad's default for generic symbols). A part without a real
+            # value is useless for feeders, so skip it — the footprint still
+            # appears as a package.
+            logger.warning(f'Skipping part for {footprint_name}: no value set in schematic')
+            continue
+
+        id = f'{package_id}-{value}'
 
         # There's no harm in using the body height from the 3D model on the board (as
         # opposed to the library). Even if it's changed from the default one, offset,
         # or resized, that's an explicit action by the user.
-        if id not in parts and include_footprint(footprint):
+        if id not in parts:
             parts[id] = footprint_to_part(footprint, id, package_id)
     
     p = Element('openpnp-parts')
