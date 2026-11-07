@@ -65,9 +65,12 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
     id = footprint.GetFPID().GetUniStringLibItemName()
 
     pkg = Element('package')
+    # Attributes in the same order OpenPnP writes them.
     pkg.set('version', OPENPNP_PACKAGE_VERSION)
-    pkg.set('description', footprint.GetLibDescription())
     pkg.set('id', id)
+    pkg.set('description', footprint.GetLibDescription())
+    pkg.set('pick-vacuum-level', str(0.0))
+    pkg.set('place-blow-off-level', str(0.0))
 
     fp = SubElement(pkg, 'footprint')
     fp.set('units', UNITS)
@@ -81,24 +84,48 @@ def footprint_to_package(footprint: pcbnew.FOOTPRINT):
         fp.set('body-height', str(dimensions["length"]))
     else:
         logger.warning(f"No dimensions found for {id}")
+        fp.set('body-width', str(0.0))
+        fp.set('body-height', str(0.0))
+
+    # Remaining footprint attributes, in OpenPnP order.
+    for attr, default in (('outer-dimension', '0.0'), ('inner-dimension', '0.0'),
+                          ('pad-count', '0'), ('pad-pitch', '0.0'),
+                          ('pad-across', '0.0'), ('pad-roundness', '0.0')):
+        fp.set(attr, default)
 
     for pad in pads:
         if pad.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
             continue
 
-        p = SubElement(fp, 'pad', name=pad.GetName())
+        p = SubElement(fp, 'pad', name=pad.GetName() or pad.GetNumber())
+
+        # Use footprint-relative coordinates: correct both for library-loaded
+        # footprints and for board-embedded ones (whose plain GetX/GetY are
+        # board-absolute).
+        try:
+            pos = pad.GetFPRelativePosition()
+            pos_x, pos_y = pos.x, pos.y
+        except Exception:
+            pos_x, pos_y = pad.GetX(), pad.GetY()
+        try:
+            pad_rotation = pad.GetFPRelativeOrientation().AsDegrees()
+        except Exception:
+            pad_rotation = pad.GetOrientationDegrees()
+
+        # Attributes in the same order OpenPnP writes them.
+        p.set('x', str(to_milis(pos_x)))
+        p.set('y', str(to_milis(-pos_y)))
         p.set('width', str(to_milis(pad.GetSizeX())))
         p.set('height', str(to_milis(pad.GetSizeY())))
-        p.set('x', str(to_milis(pad.GetX())))
-        p.set('y', str(to_milis(-pad.GetY())))
+        p.set('rotation', str(pad_rotation))
         p.set('mark', 'true' if pad.GetNumber() == '1' else 'false')
-
         p.set('roundness', str(0))
-        p.set('rotation', str(pad.GetOrientationDegrees()))
 
         shape = pad.GetShape()
         if shape == pcbnew.PAD_SHAPE_ROUNDRECT:
-            p.set('roundness', str(pad.GetRoundRectRadiusRatio()))
+            # OpenPnP expects a percentage (0..100), KiCad gives a ratio
+            # (0..0.5) of the shortest side.
+            p.set('roundness', str(pad.GetRoundRectRadiusRatio() * 100))
         elif shape == pcbnew.PAD_SHAPE_CIRCLE:
             p.set('roundness', str(100))
 
