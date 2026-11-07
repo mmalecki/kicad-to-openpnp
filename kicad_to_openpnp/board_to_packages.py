@@ -58,7 +58,7 @@ def main():
                         help='KiCad board file')
     parser.add_argument('--join', '-j', help='Join with given packages file. Existing packages are given precedence.', type=str, default=None)
     parser.add_argument('--id-map', type=str, default=None,
-                        help='Rename footprint-derived package ids, e.g. C_0603=C0603,Pico_Module=Pico-Module-RM2')
+                        help='Rename footprint-derived package ids, e.g. C_0603=C0603,LED_0805=LED0805')
     parser.add_argument('--pretty', '-p', help='Pretty print the output? Default is to output with OpenPnP formatting settings', action='store_true')
 
     args = parser.parse_args()

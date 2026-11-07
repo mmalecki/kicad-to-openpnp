@@ -64,7 +64,7 @@ def main():
     parser.add_argument('--pretty', '-p', help='Pretty print the output?', action='store_true')
     parser.add_argument('--join', '-j', help='Join with given parts file. Existing parts are given precedence.', type=str, default=None)
     parser.add_argument('--id-map', type=str, default=None,
-                        help='Rename footprint-derived part/package ids, e.g. C_0603=C0603,Pico_Module=Pico-Module-RM2')
+                        help='Rename footprint-derived part/package ids, e.g. C_0603=C0603,LED_0805=LED0805')
 
     args = parser.parse_args()
 
